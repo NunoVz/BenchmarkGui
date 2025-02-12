@@ -1,10 +1,8 @@
 from flask import Flask, jsonify, request
-from flask_cors import CORS
 import threading
 import time
 
 app = Flask(__name__)
-CORS(app)
 
 # Simulated benchmark status
 benchmark_status = {"status": "idle", "progress": "0%", "results": {}}
@@ -36,4 +34,4 @@ def get_results():
     return jsonify(benchmark_status["results"]), 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=443, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)  # Run ONLY locally
