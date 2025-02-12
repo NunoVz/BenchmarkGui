@@ -8,7 +8,7 @@ function BenchmarkDashboard() {
 
     const startBenchmark = async () => {
         try {
-            await axios.post('http://localhost:433/start-benchmark');
+            await axios.post('http://localhost:443/start-benchmark');
         } catch (error) {
             console.error("Error starting benchmark:", error);
         }
@@ -16,11 +16,11 @@ function BenchmarkDashboard() {
 
     useEffect(() => {
         const interval = setInterval(async () => {
-            const res = await axios.get('http://localhost:433/status');
+            const res = await axios.get('http://localhost:443/status');
             setStatus(res.data);
 
             if (res.data.status === "completed") {
-                const resultRes = await axios.get('http://localhost:433/results');
+                const resultRes = await axios.get('http://localhost:443/results');
                 setResults(resultRes.data);
             }
         }, 2000);
