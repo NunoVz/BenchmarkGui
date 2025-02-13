@@ -4,6 +4,7 @@ import { io } from "socket.io-client";
 
 function BenchmarkDashboard() {
     const [toolLogs, setToolLogs] = useState([]);
+    const [flaskLogs, setFlaskLogs] = useState([]);
     const [status, setStatus] = useState("idle");
 
     useEffect(() => {
@@ -14,11 +15,17 @@ function BenchmarkDashboard() {
             setToolLogs((prevLogs) => [...prevLogs, data.log]);
         });
 
+        // Listen for Flask logs
+        socket.on("log_update_flask", (data) => {
+            setFlaskLogs((prevLogs) => [...prevLogs, data.log]);
+        });
+
         return () => socket.disconnect();
     }, []);
 
     const startBenchmark = async () => {
         setToolLogs([]);
+        setFlaskLogs([]);
         setStatus("running");
 
         try {
@@ -35,6 +42,12 @@ function BenchmarkDashboard() {
             <button onClick={startBenchmark} style={{ padding: "10px", fontSize: "16px" }}>Start Benchmark</button>
             
             <h2>Status: {status}</h2>
+
+            {/* Flask Logs */}
+            <div style={{ maxHeight: "400px", overflowY: "auto", border: "1px solid #ccc", padding: "10px", marginTop: "20px", textAlign: "left" }}>
+                <h3>Flask Server Logs</h3>
+                <pre style={{ whiteSpace: "pre-wrap" }}>{flaskLogs.join("\n")}</pre>
+            </div>
 
             {/* Benchmark Tool Logs */}
             <div style={{ maxHeight: "400px", overflowY: "auto", border: "1px solid #ccc", padding: "10px", marginTop: "20px", textAlign: "left" }}>
