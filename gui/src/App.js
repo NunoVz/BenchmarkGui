@@ -3,22 +3,13 @@ import axios from "axios";
 import { io } from "socket.io-client";
 
 function BenchmarkDashboard() {
-    const [controllerLogs, setControllerLogs] = useState([]);
-    const [mininetLogs, setMininetLogs] = useState([]);
     const [toolLogs, setToolLogs] = useState([]);
     const [status, setStatus] = useState("idle");
 
     useEffect(() => {
         const socket = io("http://localhost:5000");  // Connect WebSocket
 
-        socket.on("log_update_controller", (data) => {
-            setControllerLogs((prevLogs) => [...prevLogs, data.log]);
-        });
-
-        socket.on("log_update_mininet", (data) => {
-            setMininetLogs((prevLogs) => [...prevLogs, data.log]);
-        });
-
+        // Listen for Benchmark CLI output
         socket.on("log_update_benchmark_tool", (data) => {
             setToolLogs((prevLogs) => [...prevLogs, data.log]);
         });
@@ -28,8 +19,6 @@ function BenchmarkDashboard() {
 
     const startBenchmark = async () => {
         setToolLogs([]);
-        setControllerLogs([]);
-        setMininetLogs([]);
         setStatus("running");
 
         try {
@@ -47,21 +36,9 @@ function BenchmarkDashboard() {
             
             <h2>Status: {status}</h2>
 
-            {/* Controller Logs */}
-            <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #ccc", padding: "10px", marginTop: "20px", textAlign: "left" }}>
-                <h3>Controller CLI Output (via SSH)</h3>
-                <pre style={{ whiteSpace: "pre-wrap" }}>{controllerLogs.join("\n")}</pre>
-            </div>
-
-            {/* Mininet Logs */}
-            <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #ccc", padding: "10px", marginTop: "20px", textAlign: "left" }}>
-                <h3>Mininet CLI Output (Local)</h3>
-                <pre style={{ whiteSpace: "pre-wrap" }}>{mininetLogs.join("\n")}</pre>
-            </div>
-
             {/* Benchmark Tool Logs */}
-            <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #ccc", padding: "10px", marginTop: "20px", textAlign: "left" }}>
-                <h3>Benchmark Tool CLI Output (Local)</h3>
+            <div style={{ maxHeight: "400px", overflowY: "auto", border: "1px solid #ccc", padding: "10px", marginTop: "20px", textAlign: "left" }}>
+                <h3>Benchmark Tool CLI Output</h3>
                 <pre style={{ whiteSpace: "pre-wrap" }}>{toolLogs.join("\n")}</pre>
             </div>
         </div>

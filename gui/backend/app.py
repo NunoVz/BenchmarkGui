@@ -1,10 +1,8 @@
 from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, emit
-import paramiko
-import threading
 import subprocess
+import os
 import shlex
-import time
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -12,76 +10,56 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 # SUDO PASSWORD (Consider using sudoers instead)
 SUDO_PASSWORD = "b1vbx11"
 
-# Path to Benchmark Tool
+# Path to Benchmark Tool Directory
 BENCHMARK_DIR = "/BenchmarkGui/Tese-2"
+BENCHMARK_CMD = f"echo {SUDO_PASSWORD} | sudo -S python3 benchmark.py -ip 193.137.203.34 -p 6653 -s 12 -q 3 -max 30 -n onos -t 3-tier -m N"
 
-
-# Controller VM (SSH)
-CONTROLLER_VM = {
-    "ip": "10.3.3.100",
-    "username": "admin",
-    "command": "sudo tail -f /var/log/controller.log"
-}
-SSH_KEY_PATH = "/home/admin/.ssh/id_rsa"
-
-# Commands to Execute
-COMMANDS = {
-    "mininet": f"echo {SUDO_PASSWORD} | sudo -S mn --test pingall",
-    "benchmark_tool": f"echo {SUDO_PASSWORD} | sudo -S python3 {BENCHMARK_DIR}/benchmark.py -ip 193.137.203.34 -p 6653 -s 12 -q 3 -max 30 -n onos -t 3-tier -m N"
-}
-
-def stream_local_cli(command_name, command):
-    """ Runs a CLI command, streams output, and captures errors. """
+def stream_benchmark_logs():
+    """ Runs benchmark.py and streams output to React in real-time. """
     try:
-        print(f"Executing: {command}")  # Debug: Show command being executed
-        
-        # Run the command with unbuffered output (forces real-time streaming)
+        print(f"Changing directory to: {BENCHMARK_DIR}")
+        os.chdir(BENCHMARK_DIR)  # Ensure correct working directory
+
+        print(f"Executing: {BENCHMARK_CMD}")
         process = subprocess.Popen(
-            shlex.split(command),  # Split command into list for security
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
+            shlex.split(BENCHMARK_CMD), 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.PIPE, 
+            text=True, 
             bufsize=1  # Line buffering for real-time output
         )
 
         # Read stdout and stderr line by line
         for line in iter(process.stdout.readline, ""):
-            print(f"{command_name} OUTPUT: {line.strip()}")  # Debug: Show logs
-            socketio.emit(f"log_update_{command_name}", {"log": line.strip()})
+            print(f"BENCHMARK OUTPUT: {line.strip()}")  # Debugging
+            socketio.emit("log_update_benchmark_tool", {"log": line.strip()})
+            process.stdout.flush()
 
         for line in iter(process.stderr.readline, ""):
-            print(f"{command_name} ERROR: {line.strip()}")  # Debug: Show errors
-            socketio.emit(f"log_update_{command_name}", {"log": f"ERROR: {line.strip()}"})
+            print(f"BENCHMARK ERROR: {line.strip()}")  # Debugging
+            socketio.emit("log_update_benchmark_tool", {"log": f"ERROR: {line.strip()}"})
+            process.stderr.flush()
 
         process.stdout.close()
         process.stderr.close()
         process.wait()
 
         if process.returncode != 0:
-            error_msg = f"⚠ ERROR: {command_name} exited with code {process.returncode}"
+            error_msg = f"⚠ ERROR: Benchmark tool exited with code {process.returncode}"
             print(error_msg)
-            socketio.emit(f"log_update_{command_name}", {"log": error_msg})
+            socketio.emit("log_update_benchmark_tool", {"log": error_msg})
 
     except Exception as e:
-        error_msg = f"❌ Failed to execute {command_name}: {e}"
+        error_msg = f"❌ Failed to execute benchmark tool: {e}"
         print(error_msg)
-        socketio.emit(f"log_update_{command_name}", {"log": error_msg})
-
-
-def start_log_threads():
-    """ Starts threads for Mininet & Benchmark tool logs. """
-    for command_name, command in COMMANDS.items():
-        threading.Thread(target=stream_local_cli, args=(command_name, command), daemon=True).start()
-
+        socketio.emit("log_update_benchmark_tool", {"log": error_msg})
 
 @app.route('/start-benchmark', methods=['POST'])
 def start_benchmark():
-    """ Starts the benchmark tool and logs streaming. """
-    data = request.json
-    print(f"Received request: {data}")  # Debug: Show received request
-    start_log_threads()
-    return jsonify({"message": "Benchmark started, CLI logs streaming", "received_data": data}), 200
-
+    """ Starts the benchmark and logs streaming. """
+    print("Received benchmark start request.")
+    socketio.start_background_task(target=stream_benchmark_logs)
+    return jsonify({"message": "Benchmark started, CLI logs streaming"}), 200
 
 if __name__ == '__main__':
     print("Flask server starting on 127.0.0.1:5000...")
