@@ -25,7 +25,7 @@ def log_message(message):
 def stream_benchmark_logs(command):
     try:
         if not os.path.exists(BENCHMARK_DIR):
-            log_message(f"⚠ ERROR: Directory '{BENCHMARK_DIR}' not found!")
+            log_message(f"ERROR: Directory '{BENCHMARK_DIR}' not found!")
             return
 
         log_message(f"Executing: {command}")
@@ -47,20 +47,20 @@ def stream_benchmark_logs(command):
             log_message(f"{line.strip()}")
 
         for line in iter(process.stderr.readline, ""):
-            log_message(f"⚠ ERROR: {line.strip()}")
+            log_message(f"ERROR: {line.strip()}")
 
         process.stdout.close()
         process.stderr.close()
         process.wait()
 
         if process.returncode != 0:
-            log_message(f"⚠ ERROR: Benchmark tool exited with code {process.returncode}")
+            log_message(f"ERROR: Benchmark tool exited with code {process.returncode}")
 
-        log_message("✅ Benchmark process completed.")
+        log_message("Benchmark process completed.")
         socketio.emit("benchmark_complete", {"message": "Benchmark process completed."})
 
     except Exception as e:
-        log_message(f"❌ Failed to execute benchmark tool: {e}")
+        log_message(f"Failed to execute benchmark tool: {e}")
 
 
 
