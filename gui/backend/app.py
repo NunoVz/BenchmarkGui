@@ -18,7 +18,7 @@ BENCHMARK_CMD = f"sudo -S python3 {BENCHMARK_DIR}/benchmark.py -ip 193.137.203.3
 def log_message(message):
     """ Sends logs to both Flask console and React via WebSockets. """
     print(message)
-    socketio.emit("log_update_flask", {"log": message})
+    socketio.emit("log_update_benchmark_tool", {"log": message})
     sys.stdout.flush()  # Ensure real-time log flushing
 
 def stream_benchmark_logs():
@@ -46,13 +46,9 @@ def stream_benchmark_logs():
         # Read stdout and stderr in real-time
         for line in iter(process.stdout.readline, ""):
             log_message(f"BENCHMARK OUTPUT: {line.strip()}")
-            socketio.emit("log_update_benchmark_tool", {"log": line.strip()})
-            process.stdout.flush()
 
         for line in iter(process.stderr.readline, ""):
             log_message(f"BENCHMARK ERROR: {line.strip()}")
-            socketio.emit("log_update_benchmark_tool", {"log": f"ERROR: {line.strip()}"})
-            process.stderr.flush()
 
         process.stdout.close()
         process.stderr.close()
@@ -60,6 +56,10 @@ def stream_benchmark_logs():
 
         if process.returncode != 0:
             log_message(f"⚠ ERROR: Benchmark tool exited with code {process.returncode}")
+
+        # 🔴 Close WebSocket when benchmark is finished
+        log_message("✅ Benchmark process completed. Closing WebSocket.")
+        socketio.emit("benchmark_complete", {"message": "Benchmark process completed."})
 
     except Exception as e:
         log_message(f"❌ Failed to execute benchmark tool: {e}")

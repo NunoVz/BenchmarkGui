@@ -4,26 +4,34 @@ import { io } from "socket.io-client";
 
 function BenchmarkDashboard() {
     const [toolLogs, setToolLogs] = useState([]);
+    const [socket, setSocket] = useState(null);
 
     useEffect(() => {
-        const socket = io("ws://10.3.3.114:5000", {
-            transports: ["websocket"],  
-            reconnectionAttempts: 5,   
-            timeout: 20000             
+        const newSocket = io("ws://10.3.3.114:5000", {
+            transports: ["websocket"],
+            reconnectionAttempts: 5,
+            timeout: 20000
         });
-        
+
+        setSocket(newSocket);
 
         // Listen for Benchmark CLI output
-        socket.on("log_update_benchmark_tool", (data) => {
-            console.log("Received log:", data.log);  // Debugging: Ensure logs are received
+        newSocket.on("log_update_benchmark_tool", (data) => {
+            console.log("Received log:", data.log);
             setToolLogs((prevLogs) => [...prevLogs, data.log]);
         });
 
-        return () => socket.disconnect();
+        // 🔴 Listen for "benchmark_complete" from Flask and disconnect WebSocket
+        newSocket.on("benchmark_complete", (data) => {
+            console.log("Benchmark completed:", data.message);
+            newSocket.disconnect();
+        });
+
+        return () => newSocket.disconnect();
     }, []);
 
     const startBenchmark = async () => {
-        setToolLogs([]); // Clear previous logs
+        setToolLogs([]);
 
         try {
             const response = await axios.post("/start-benchmark", { message: "Start requested from React" });
