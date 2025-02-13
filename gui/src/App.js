@@ -6,9 +6,10 @@ function BenchmarkDashboard() {
     const [toolLogs, setToolLogs] = useState([]);
 
     useEffect(() => {
-        const socket = io("http://localhost:5000", {
+        const socket = io("http://10.3.3.114:5000", {
             transports: ["websocket"],  
-        }); 
+        });
+        
 
         // Listen for Benchmark CLI output
         socket.on("log_update_benchmark_tool", (data) => {

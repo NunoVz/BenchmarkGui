@@ -72,5 +72,4 @@ def start_benchmark():
     return jsonify({"message": "Benchmark started, CLI logs streaming"}), 200
 
 if __name__ == '__main__':
-    log_message("Flask server starting on 127.0.0.1:5000...")
-    socketio.run(app, host='127.0.0.1', port=5000, debug=True)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
