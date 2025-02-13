@@ -1,0 +1,47 @@
+214835
+1144076
+
+Sources ON/OFF generator
+Computation of 3 number with a distrib of type=2...        00% ... 10% ... 20% ...  done.   
+Computation of 3 number with a distrib of type=6...        00% ... 10% ... 20% ...  done.   
+
+Sources set #1> will contact :
+
+Sources set #1> 10.0.0.1
+
+Sources set #1>  client TCP start transmitting...
+
+Sources set #1> connection cannot be established. Continue...
+
+
+Sources set #1> connection cannot be established. Continue...
+
+
+Sources set #1> connection cannot be established. Continue...
+
+
+Sources set #1> No more connection, no more source, nothing else to do, everything is ok !
+
+1144631
+
+Sources ON/OFF generator
+Computation of 3 number with a distrib of type=2...        00% ... 10% ... 20% ...  done.   
+Computation of 3 number with a distrib of type=6...        00% ... 10% ... 20% ...  done.   
+
+Sources set #1> will contact :
+
+Sources set #1> 10.0.0.23
+
+Sources set #1>  client TCP start transmitting...
+
+Sources set #1> connection cannot be established. Continue...
+
+
+Sources set #1> connection cannot be established. Continue...
+
+
+Sources set #1> connection cannot be established. Continue...
+
+
+Sources set #1> No more connection, no more source, nothing else to do, everything is ok !
+
