@@ -62,8 +62,6 @@ def stream_benchmark_logs(command):
     except Exception as e:
         log_message(f"Failed to execute benchmark tool: {e}")
 
-
-
 @app.route('/start-benchmark', methods=['POST'])
 def start_benchmark():
     data = request.json
@@ -83,6 +81,38 @@ def start_benchmark():
     socketio.start_background_task(target=stream_benchmark_logs, command=command)
 
     return jsonify({"message": "Benchmark started, logs streaming"}), 200
+
+@app.route('/run-mininet-command', methods=['POST'])
+def run_mininet_command():
+    try:
+        data = request.json
+        command = data.get("command", "").strip()
+
+        allowed_commands = ["sudo mn -c", "sudo mn"]
+        if command not in allowed_commands:
+            return jsonify({"error": "Unauthorized command!"}), 400
+
+        full_command = f"echo {SUDO_PASSWORD} | sudo -S {command}"
+
+        process = subprocess.Popen(
+            full_command,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+
+        stdout, stderr = process.communicate()
+
+        if stdout:
+            socketio.emit("mininet_log", {"log": stdout.strip()})
+        if stderr:
+            socketio.emit("mininet_log", {"log": f'ERROR: {stderr.strip()}'})
+
+        return jsonify({"output": stdout.strip() if stdout else stderr.strip()}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to execute command: {str(e)}"}), 500
 
 if __name__ == '__main__':
     socketio.run(app, host="0.0.0.0", port=443, debug=True)

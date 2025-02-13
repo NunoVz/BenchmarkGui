@@ -6,7 +6,7 @@ body {
 }
 
 .container {
-    max-width: 900px;
+    max-width: 1000px;
     margin: auto;
     background: white;
     padding: 20px;
@@ -19,15 +19,36 @@ h1 {
     color: #333;
 }
 
-h2 {
+h2, h3 {
     margin-top: 20px;
     color: #0056b3;
+}
+
+.main-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
 }
 
 .form-container {
     background: #f9f9f9;
     padding: 15px;
     border-radius: 5px;
+    width: 65%;
+}
+
+.sidebar {
+    background: #eee;
+    padding: 15px;
+    border-radius: 5px;
+    width: 30%;
+    text-align: center;
+}
+
+.sidebar input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
 }
 
 .grid {
@@ -36,23 +57,11 @@ h2 {
     gap: 10px;
 }
 
-.grid label {
-    font-weight: bold;
-    padding-top: 5px;
-}
-
-.grid input, .grid select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
 button {
     background-color: #007BFF;
     color: white;
     border: none;
-    padding: 12px 15px;
+    padding: 10px;
     font-size: 16px;
     border-radius: 5px;
     cursor: pointer;
