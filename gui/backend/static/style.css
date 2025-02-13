@@ -80,11 +80,14 @@ button:hover {
 
 #benchmark-log, #mininet-log, #controller-log {
     background: black;
-    color: green;
+    color: lightgreen;
     padding: 10px;
     border-radius: 5px;
-    height: 200px;
+    height: 300px;
     overflow-y: auto;
     font-family: monospace;
-    font-size: 14px;
+    font-size: 18px;
 }
+
+
+

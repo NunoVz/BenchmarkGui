@@ -86,37 +86,82 @@ def start_benchmark():
 
     return jsonify({"message": "Benchmark started, logs streaming"}), 200
 
-@app.route('/run-mininet-command', methods=['POST'])
-def run_mininet_command():
+def start_mininet():
+    """Starts Mininet and continuously captures its logs."""
+    global mininet_process
     try:
+        log_message("Starting Mininet in background mode...")
+
+        # Ensure any existing Mininet is cleaned up
+        os.system(f"echo {SUDO_PASSWORD} | sudo -S mn -c")
+
+        # Launch Mininet interactively
+        command = f"echo {SUDO_PASSWORD} | sudo -S mn"
+        mininet_process = subprocess.Popen(
+            command,
+            shell=True,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1
+        )
+
+        # Stream logs from Mininet
+        def stream_logs():
+            for line in iter(mininet_process.stdout.readline, ""):
+                log_message(f"[Mininet] {line.strip()}")
+            for line in iter(mininet_process.stderr.readline, ""):
+                log_message(f"[Mininet ERROR] {line.strip()}")
+
+        # Run streaming in a background thread
+        threading.Thread(target=stream_logs, daemon=True).start()
+
+    except Exception as e:
+        log_message(f"ERROR: Failed to start Mininet - {str(e)}")
+
+@app.route("/start-mininet", methods=["POST"])
+def start_mininet_endpoint():
+    """API endpoint to start Mininet and stream logs."""
+    socketio.start_background_task(target=start_mininet)
+    return jsonify({"message": "Mininet started, logs streaming"}), 200
+
+@app.route("/run-mininet-command", methods=["POST"])
+def run_mininet_command():
+    """Runs Mininet CLI commands and streams the output."""
+    try:
+        if mininet_process is None:
+            return jsonify({"error": "Mininet is not running!"}), 400
+
         data = request.json
         command = data.get("command", "").strip()
 
-        allowed_commands = ["sudo mn -c", "sudo mn"]
-        if command not in allowed_commands:
-            return jsonify({"error": "Unauthorized command!"}), 400
+        if not command:
+            return jsonify({"error": "No command provided"}), 400
 
-        full_command = f"echo {SUDO_PASSWORD} | sudo -S {command}"
+        log_message(f"Executing Mininet Command: {command}")
 
-        process = subprocess.Popen(
-            full_command,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
+        # Send the command to Mininet's stdin
+        mininet_process.stdin.write(command + "\n")
+        mininet_process.stdin.flush()
 
-        stdout, stderr = process.communicate()
-
-        if stdout:
-            socketio.emit("mininet_log", {"log": stdout.strip()})
-        if stderr:
-            socketio.emit("mininet_log", {"log": f'ERROR: {stderr.strip()}'})
-
-        return jsonify({"output": stdout.strip() if stdout else stderr.strip()}), 200
+        return jsonify({"message": f"Command '{command}' executed"}), 200
 
     except Exception as e:
-        return jsonify({"error": f"Failed to execute command: {str(e)}"}), 500
+        return jsonify({"error": f"Failed to execute Mininet command: {str(e)}"}), 500
+
+@app.route("/stop-mininet", methods=["POST"])
+def stop_mininet():
+    """Stops Mininet and cleans up."""
+    global mininet_process
+    if mininet_process:
+        mininet_process.stdin.write("exit\n")
+        mininet_process.stdin.flush()
+        mininet_process.terminate()
+        mininet_process = None
+        log_message("Mininet stopped.")
+        return jsonify({"message": "Mininet stopped successfully"}), 200
+    return jsonify({"error": "Mininet is not running!"}), 400
 
 if __name__ == '__main__':
     socketio.run(app, host="0.0.0.0", port=443, debug=True)

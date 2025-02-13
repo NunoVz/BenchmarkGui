@@ -93,27 +93,43 @@
             .catch(error => console.error("Error:", error));
         }
 
+    
+        function startMininet() {
+            fetch("/start-mininet", { method: "POST" })
+                .then(response => response.json())
+                .then(data => console.log(data.message))
+                .catch(error => console.error("Error:", error));
+        }
+
+        function stopMininet() {
+            fetch("/stop-mininet", { method: "POST" })
+                .then(response => response.json())
+                .then(data => console.log(data.message))
+                .catch(error => console.error("Error:", error));
+        }
+
         function runMininetCommand() {
             var command = document.getElementById("mininet-command").value;
-
             fetch("/run-mininet-command", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ command: command })
             })
             .then(response => response.json())
-            .then(data => {
-                document.getElementById("mininet-log").innerHTML += `<p>${data.output}</p>`;
-            })
+            .then(data => console.log(data.message))
             .catch(error => console.error("Error:", error));
         }
+
+        
 
         socket.on("log_update", function(data) {
             document.getElementById("benchmark-log").innerHTML += `<p>${data.log}</p>`;
         });
 
         socket.on("mininet_log", function(data) {
-            document.getElementById("mininet-log").innerHTML += `<p>${data.log}</p>`;
+            var logBox = document.getElementById("mininet-log");
+            logBox.innerHTML += `<p>${data.log}</p>`;
+            logBox.scrollTop = logBox.scrollHeight;
         });
 
         socket.on("controller_log", function(data) {
