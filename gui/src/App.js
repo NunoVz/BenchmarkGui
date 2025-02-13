@@ -7,11 +7,12 @@ function BenchmarkDashboard() {
     const [socket, setSocket] = useState(null);
 
     useEffect(() => {
-        const newSocket = io("ws://10.3.3.114:5000", {
-            transports: ["websocket"],
+        const socket = io("http://10.3.3.114:5000", {
+            transports: ["websocket", "polling"],
             reconnectionAttempts: 5,
             timeout: 20000
         });
+        
 
         setSocket(newSocket);
 
