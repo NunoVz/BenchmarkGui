@@ -12,7 +12,7 @@ SUDO_PASSWORD = "b1vbx11"
 
 # Path to Benchmark Tool Directory
 BENCHMARK_DIR = "/BenchmarkGui/Tese-2"
-BENCHMARK_CMD = f"echo {SUDO_PASSWORD} | sudo -S python3 benchmark.py -ip 193.137.203.34 -p 6653 -s 12 -q 3 -max 30 -n onos -t 3-tier -m N"
+BENCHMARK_CMD = f"echo {SUDO_PASSWORD} | sudo -S python3 {BENCHMARK_DIR}/benchmark.py -ip 193.137.203.34 -p 6653 -s 12 -q 3 -max 30 -n onos -t 3-tier -m N"
 
 def stream_benchmark_logs():
     """ Runs benchmark.py and streams output to React in real-time. """
