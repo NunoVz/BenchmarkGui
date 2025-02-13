@@ -13,7 +13,8 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 SUDO_PASSWORD = "b1vbx11"
 
 # Path to Benchmark Tool
-BENCHMARK_DIR = "/home/admin/BenchmarkTool"
+BENCHMARK_DIR = "/BenchmarkGui/Tese-2"
+
 
 # Controller VM (SSH)
 CONTROLLER_VM = {
@@ -26,7 +27,7 @@ SSH_KEY_PATH = "/home/admin/.ssh/id_rsa"
 # Commands to Execute
 COMMANDS = {
     "mininet": f"echo {SUDO_PASSWORD} | sudo -S mn --test pingall",
-    "benchmark_tool": f"echo {SUDO_PASSWORD} | sudo -S python3 {BENCHMARK_DIR}/benchmark.py -ip 10.3.3.114 -p 6653 -s 12 -q 3 -max 30 -n onos -t 3-tier -m N"
+    "benchmark_tool": f"echo {SUDO_PASSWORD} | sudo -S python3 {BENCHMARK_DIR}/benchmark.py -ip 193.137.203.34 -p 6653 -s 12 -q 3 -max 30 -n onos -t 3-tier -m N"
 }
 
 def stream_local_cli(command_name, command):
