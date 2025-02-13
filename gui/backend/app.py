@@ -13,47 +13,16 @@ SUDO_PASSWORD = "b1vbx11"
 BENCHMARK_DIR = "/home/admin/BenchmarkGui/Tese-2"
 BENCHMARK_SCRIPT = "benchmark.py"
 
-LOG_FILES = {
-    "benchmark": "benchmark-log.txt",
-    "mininet": "mininet-log.txt",
-    "controller": "controller-log.txt"
-}
+
 
 @app.route('/')
 def index():
     return render_template("index.html")
 
-def save_log_to_file(log_type, message):
-    if log_type in LOG_FILES:
-        with open(LOG_FILES[log_type], "a") as file:
-            file.write(message + "\n")
-
-def read_logs_from_file(log_type):
-    if log_type in LOG_FILES and os.path.exists(LOG_FILES[log_type]):
-        with open(LOG_FILES[log_type], "r") as file:
-            return file.readlines()
-    return []
-
-
-@app.route("/get-logs/<log_type>", methods=["GET"])
-def get_logs(log_type):
-    logs = read_logs_from_file(log_type)
-    return jsonify({"logs": logs})
-
-@app.route("/clear-logs/<log_type>", methods=["POST"])
-def clear_logs(log_type):
-    if log_type in LOG_FILES:
-        open(LOG_FILES[log_type], "w").close()  # Clear the log file
-        return jsonify({"message": f"{log_type} logs cleared!"})
-    return jsonify({"error": "Invalid log type"}), 400
-
-def log_message(log_type, message):
+def log_message(message):
     print(message)
-    socketio.emit(f"{log_type}_log", {"log": message})  # Send to frontend
-    save_log_to_file(log_type, message)  # Save log to file
+    socketio.emit("log_update", {"log": message})
     sys.stdout.flush()
-
-
 
 def stream_benchmark_logs(command):
     try:
