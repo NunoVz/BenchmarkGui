@@ -138,18 +138,32 @@ def stream_controller_logs(controller_name):
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(CONTROLLER_IP, username=CONTROLLER_USER, key_filename=CONTROLLER_KEY)
-        print(f"Connected to {controller_name} controller at {CONTROLLER_IP}")
+        
 
+        # Check if log file exists on the remote server
+        check_command = f"if [ -f {log_file} ]; then echo 'File Exists'; else echo 'File Not Found'; fi"
+        stdin, stdout, stderr = client.exec_command(check_command)
+        file_status = stdout.read().decode().strip()
+
+        if "File Not Found" in file_status:
+            socketio.emit("controller_log", {"log": f"ERROR: Log file {log_file} not found on {controller_name}."})
+            client.close()
+            return
+
+        socketio.emit("controller_log", {"log": f"Streaming logs from {log_file}..."})
+
+        # Tail logs in real-time
         command = f"tail -f {log_file}"
         stdin, stdout, stderr = client.exec_command(command)
 
         for line in iter(stdout.readline, ""):
             socketio.emit("controller_log", {"log": line.strip()})
-        
-        client.close()
 
     except Exception as e:
         socketio.emit("controller_log", {"log": f"ERROR: Failed to fetch logs: {str(e)}"})
+    finally:
+        client.close()
+
 
 @app.route('/start-controller-logs', methods=['POST'])
 def start_controller_logs():
