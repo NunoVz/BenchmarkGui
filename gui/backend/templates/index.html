@@ -3,18 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask Test Page</title>
+    <title>Benchmark CLI Logs</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        h1 { color: green; }
-        p { font-size: 18px; }
+        body { font-family: Arial, sans-serif; }
+        #logs { height: 400px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px; }
+        button { padding: 10px 15px; margin-top: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <h1>✅ Flask is Running!</h1>
-    <p>If you see this page, Flask is working correctly on your VM.</p>
-    <p>Try accessing: <b>http://10.3.3.114:5000</b></p>
+    <h2>Benchmark Logs</h2>
+    <button onclick="startBenchmark()">Start Benchmark</button>
+    <div id="logs"></div>
+
+    <script>
+        var socket = io.connect("http://10.3.3.114:443");
+
+        socket.on("log_update", function(data) {
+            var logsDiv = document.getElementById("logs");
+            logsDiv.innerHTML += "<p>" + data.log + "</p>";
+            logsDiv.scrollTop = logsDiv.scrollHeight;  // Auto-scroll to latest log
+        });
+
+        socket.on("benchmark_complete", function(data) {
+            alert(data.message);
+        });
+
+        function startBenchmark() {
+            fetch("/start-benchmark", { method: "POST" })
+                .then(response => response.json())
+                .then(data => console.log(data.message))
+                .catch(error => console.error("Error:", error));
+        }
+    </script>
 
 </body>
 </html>
