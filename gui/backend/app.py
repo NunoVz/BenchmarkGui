@@ -10,26 +10,26 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 # SUDO PASSWORD (Consider using sudoers instead)
 SUDO_PASSWORD = "b1vbx11"
 
-# Path to Benchmark Tool Directory
+# Path to Benchmark Tool
 BENCHMARK_DIR = "/home/admin/BenchmarkGui/Tese-2"
 BENCHMARK_CMD = f"echo {SUDO_PASSWORD} | sudo -S python3 {BENCHMARK_DIR}/benchmark.py -ip 193.137.203.34 -p 6653 -s 12 -q 3 -max 30 -n onos -t 3-tier -m N"
 
 def stream_benchmark_logs():
-    """ Runs benchmark.py and streams output to React in real-time. """
+    """ Runs benchmark.py from the correct directory and streams logs. """
     try:
-        print(f"Changing directory to: {BENCHMARK_DIR}")
-        os.chdir(BENCHMARK_DIR)  # Ensure correct working directory
+        if not os.path.exists(BENCHMARK_DIR):
+            raise FileNotFoundError(f"⚠ ERROR: Directory '{BENCHMARK_DIR}' not found!")
 
         print(f"Executing: {BENCHMARK_CMD}")
         process = subprocess.Popen(
-            shlex.split(BENCHMARK_CMD), 
-            stdout=subprocess.PIPE, 
-            stderr=subprocess.PIPE, 
-            text=True, 
+            shlex.split(BENCHMARK_CMD),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
             bufsize=1  # Line buffering for real-time output
         )
 
-        # Read stdout and stderr line by line
+        # Read stdout and stderr in real-time
         for line in iter(process.stdout.readline, ""):
             print(f"BENCHMARK OUTPUT: {line.strip()}")  # Debugging
             socketio.emit("log_update_benchmark_tool", {"log": line.strip()})
