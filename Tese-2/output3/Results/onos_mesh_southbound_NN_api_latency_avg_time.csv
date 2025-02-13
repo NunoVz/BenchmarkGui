@@ -1,7 +1,0 @@
-Switchers,Traffic,DoS,Slowloris,RestFaults,MalformedPackets
-12,0.061,0.069,0.087,0.069,0.097
-15,0.073,0.093,0.084,0.06,0.091
-18,0.075,0.089,None,0.067,None
-21,0.391,9.693,13.799,10.813,
-24,None,35.587,None,19.577,
-27,None,None,None,None,
