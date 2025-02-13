@@ -6,8 +6,10 @@ function BenchmarkDashboard() {
     const [toolLogs, setToolLogs] = useState([]);
 
     useEffect(() => {
-        const socket = io("http://10.3.3.114:5000", {
+        const socket = io("ws://10.3.3.114:5000", {
             transports: ["websocket"],  
+            reconnectionAttempts: 5,   
+            timeout: 20000             
         });
         
 
