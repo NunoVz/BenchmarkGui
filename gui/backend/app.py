@@ -36,7 +36,8 @@ def stream_benchmark_logs(command):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            bufsize=1
+            bufsize=1,
+            cwd=BENCHMARK_DIR  
         )
 
         process.stdin.write(SUDO_PASSWORD + "\n")
