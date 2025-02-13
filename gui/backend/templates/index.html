@@ -61,16 +61,20 @@
 
         <div class="logs-container">
             <h2>Benchmark Logs</h2>
+            <button onclick="clearLogs('benchmark', 'benchmark-log')">Clear Benchmark Logs</button>
             <div id="benchmark-log"></div>
 
             <h2>Mininet Logs</h2>
+
             <div class="mininet-cli">
                 <input type="text" id="mininet-command" value="sudo mn -c">
                 <button onclick="runMininetCommand()">Run Mininet Command</button>
             </div>
+            <button onclick="clearLogs('mininet', 'mininet-log')">Clear Mininet Logs</button>
             <div id="mininet-log"></div>
 
             <h2>Controller Logs</h2>
+            <button onclick="clearLogs('controller', 'controller-log')">Clear Controller Logs</button>
             <div id="controller-log"></div>
         </div>
     </div>
@@ -119,6 +123,45 @@
         socket.on("controller_log", function(data) {
             document.getElementById("controller-log").innerHTML += `<p>${data.log}</p>`;
         });
+
+        function loadLogs(logType, elementId) {
+        fetch(`/get-logs/${logType}`)
+        .then(response => response.json())
+        .then(data => {
+            let logsDiv = document.getElementById(elementId);
+            logsDiv.innerHTML = "";  // Clear old logs before inserting new ones
+            data.logs.forEach(log => {
+                logsDiv.innerHTML += `<p>${log}</p>`;
+            });
+        });
+        }
+
+        function clearLogs(logType, elementId) {
+            fetch(`/clear-logs/${logType}`, { method: "POST" })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById(elementId).innerHTML = "";
+            });
+        }
+
+        socket.on("benchmark_log", function(data) {
+            document.getElementById("benchmark-log").innerHTML += `<p>${data.log}</p>`;
+        });
+
+        socket.on("mininet_log", function(data) {
+            document.getElementById("mininet-log").innerHTML += `<p>${data.log}</p>`;
+        });
+
+        socket.on("controller_log", function(data) {
+            document.getElementById("controller-log").innerHTML += `<p>${data.log}</p>`;
+        });
+
+        window.onload = function() {
+            loadLogs("benchmark", "benchmark-log");
+            loadLogs("mininet", "mininet-log");
+            loadLogs("controller", "controller-log");
+        };        
+
     </script>
 </body>
 </html>
