@@ -11,17 +11,14 @@ function BenchmarkDashboard() {
     useEffect(() => {
         const socket = io("http://localhost:5000");  // Connect WebSocket
 
-        // Listen for Controller CLI output (SSH)
         socket.on("log_update_controller", (data) => {
             setControllerLogs((prevLogs) => [...prevLogs, data.log]);
         });
 
-        // Listen for Mininet CLI output (Local)
         socket.on("log_update_mininet", (data) => {
             setMininetLogs((prevLogs) => [...prevLogs, data.log]);
         });
 
-        // Listen for Benchmark Tool CLI output (Local)
         socket.on("log_update_benchmark_tool", (data) => {
             setToolLogs((prevLogs) => [...prevLogs, data.log]);
         });
@@ -36,7 +33,8 @@ function BenchmarkDashboard() {
         setStatus("running");
 
         try {
-            await axios.post("/start-benchmark");
+            const response = await axios.post("/start-benchmark", { message: "Start requested from React" });
+            console.log("Response from Flask:", response.data);
         } catch (error) {
             console.error("Error starting benchmark:", error);
         }
@@ -49,19 +47,19 @@ function BenchmarkDashboard() {
             
             <h2>Status: {status}</h2>
 
-            {/* Controller CLI Output */}
+            {/* Controller Logs */}
             <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #ccc", padding: "10px", marginTop: "20px", textAlign: "left" }}>
                 <h3>Controller CLI Output (via SSH)</h3>
                 <pre style={{ whiteSpace: "pre-wrap" }}>{controllerLogs.join("\n")}</pre>
             </div>
 
-            {/* Mininet CLI Output */}
+            {/* Mininet Logs */}
             <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #ccc", padding: "10px", marginTop: "20px", textAlign: "left" }}>
                 <h3>Mininet CLI Output (Local)</h3>
                 <pre style={{ whiteSpace: "pre-wrap" }}>{mininetLogs.join("\n")}</pre>
             </div>
 
-            {/* Benchmark Tool CLI Output */}
+            {/* Benchmark Tool Logs */}
             <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #ccc", padding: "10px", marginTop: "20px", textAlign: "left" }}>
                 <h3>Benchmark Tool CLI Output (Local)</h3>
                 <pre style={{ whiteSpace: "pre-wrap" }}>{toolLogs.join("\n")}</pre>
