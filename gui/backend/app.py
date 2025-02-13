@@ -19,7 +19,7 @@ CONTROLLER_USER = "admin"
 CONTROLLER_KEY = "/home/admin/.ssh/id_rsa"
 
 LOG_FILES = {
-    "onos": "/opt/onos/logs/karaf.log",
+    "onos": "/root/onos/apache-karaf-4.2.14/data/log/karaf.log",
     "ryu": "/var/log/ryu.log",
     "odl": "/opt/opendaylight/data/log/karaf.log",
     "floodlight": "/var/log/floodlight.log"
@@ -138,31 +138,32 @@ def stream_controller_logs(controller_name):
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(CONTROLLER_IP, username=CONTROLLER_USER, key_filename=CONTROLLER_KEY)
-        
 
-        # Check if log file exists on the remote server
-        check_command = f"if [ -f {log_file} ]; then echo 'File Exists'; else echo 'File Not Found'; fi"
-        stdin, stdout, stderr = client.exec_command(check_command)
-        file_status = stdout.read().decode().strip()
+        # Verify ONOS container is running
+        check_container_cmd = "docker ps --filter 'ancestor=onosproject/onos' --format '{{.ID}}'"
+        stdin, stdout, stderr = client.exec_command(check_container_cmd)
+        container_id = stdout.read().decode().strip()
 
-        if "File Not Found" in file_status:
-            socketio.emit("controller_log", {"log": f"ERROR: Log file {log_file} not found on {controller_name}."})
+        if not container_id:
+            socketio.emit("controller_log", {"log": "ERROR: ONOS container not running."})
             client.close()
             return
 
-        socketio.emit("controller_log", {"log": f"Streaming logs from {log_file}..."})
+        socketio.emit("controller_log", {"log": f"ONOS container found: {container_id}. Streaming logs..."})
 
-        # Tail logs in real-time
-        command = f"tail -f {log_file}"
+        # Run tail command inside the ONOS Docker container
+        command = f"docker exec -it {container_id} tail -n 20 -f {log_file}"
         stdin, stdout, stderr = client.exec_command(command)
 
         for line in iter(stdout.readline, ""):
             socketio.emit("controller_log", {"log": line.strip()})
 
     except Exception as e:
-        socketio.emit("controller_log", {"log": f"ERROR: Failed to fetch logs: {str(e)}"})
+        socketio.emit("controller_log", {"log": f"ERROR: Failed to fetch ONOS logs: {str(e)}"})
+
     finally:
         client.close()
+
 
 
 @app.route('/start-controller-logs', methods=['POST'])
