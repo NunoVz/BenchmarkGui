@@ -6,7 +6,7 @@ import shlex
 import sys
 import json
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", template_folder="templates")
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 SUDO_PASSWORD = "b1vbx11"
@@ -61,6 +61,20 @@ def stream_benchmark_logs(command):
 
     except Exception as e:
         log_message(f"❌ Failed to execute benchmark tool: {e}")
+
+@app.route('/reset-mininet', methods=['POST'])
+def reset_mininet():
+    try:
+        command = f"echo {SUDO_PASSWORD} | sudo -S mn -c"
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+
+        if result.returncode == 0:
+            return jsonify({"message": "✅ Mininet reset successfully!"}), 200
+        else:
+            return jsonify({"message": f"❌ Error resetting Mininet: {result.stderr}"}), 500
+
+    except Exception as e:
+        return jsonify({"message": f"❌ Failed to execute reset: {e}"}), 500
 
 @app.route('/start-benchmark', methods=['POST'])
 def start_benchmark():

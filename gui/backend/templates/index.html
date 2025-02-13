@@ -5,14 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic Benchmark CLI</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        #logs { height: 400px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px; }
-        button { padding: 10px 15px; margin-top: 10px; cursor: pointer; }
-        .form-group { margin-bottom: 10px; }
-        label { display: block; font-weight: bold; }
-        input, select { width: 100%; padding: 5px; }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
@@ -37,43 +30,9 @@
             </select>
         </div>
 
-        <div class="form-group">
-            <label for="topology">Topology Type:</label>
-            <select id="topology" name="topology">
-                <option value="3-tier">3-Tier</option>
-                <option value="star">Star</option>
-                <option value="mesh">Mesh</option>
-                <option value="leaf-spine">Leaf-Spine</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="metrics">Metrics:</label>
-            <select id="metrics" name="metrics">
-                <option value="TDT">TDT - Topology Discovery Time</option>
-                <option value="N">N - Northbound Metrics</option>
-                <option value="NN">NN - Node-to-Node Reactive</option>
-                <option value="P">P - Node-to-Controller Proactive</option>
-                <option value="R">R - Node-to-Controller Reactive</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="start">Start Size:</label>
-            <input type="number" id="start" name="start" value="12">
-        </div>
-
-        <div class="form-group">
-            <label for="query_interval">Query Interval:</label>
-            <input type="number" id="query_interval" name="query_interval" value="3">
-        </div>
-
-        <div class="form-group">
-            <label for="maxsize">Max Size:</label>
-            <input type="number" id="maxsize" name="maxsize" value="30">
-        </div>
-
         <button type="button" onclick="startBenchmark()">Start Benchmark</button>
+        <button id="resetBtn" onclick="resetMininet()">🔄 Reset Mininet</button>
+        <p id="resetStatus"></p>
     </form>
 
     <h2>Benchmark Logs</h2>
@@ -105,6 +64,23 @@
             .then(response => response.json())
             .then(data => console.log(data.message))
             .catch(error => console.error("Error:", error));
+        }
+
+        function resetMininet() {
+            document.getElementById("resetStatus").innerText = "⏳ Resetting Mininet...";
+            
+            fetch("/reset-mininet", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("resetStatus").innerText = data.message;
+            })
+            .catch(error => {
+                document.getElementById("resetStatus").innerText = "❌ Failed to reset Mininet.";
+                console.error("Error:", error);
+            });
         }
     </script>
 
