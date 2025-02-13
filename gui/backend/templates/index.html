@@ -65,12 +65,13 @@
 
             <h2>Mininet Logs</h2>
             <div class="mininet-cli">
-                <input type="text" id="mininet-command" placeholder="Enter Mininet command...">
+                <input type="text" id="mininet-command" value="sudo mn -c">
                 <button onclick="runMininetCommand()">Run Mininet Command</button>
             </div>
-            <div id="mininet-log" class="log-box"></div>
+            <div id="mininet-log"></div>
 
             <h2>Controller Logs</h2>
+            <button type="button" onclick="startControllerLogs()">Start Controller Logs</button>
             <div id="controller-log"></div>
         </div>
     </div>
@@ -94,36 +95,49 @@
         }
 
         function runMininetCommand() {
-        var command = document.getElementById("mininet-command").value;
+            var command = document.getElementById("mininet-command").value;
 
-        fetch("/run-mininet-command", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ command: command })
-        })
-        .then(response => response.json())
-        .then(data => console.log(data.message))
-        .catch(error => console.error("Error:", error));
-    }
-
-        socket.on("mininet_log", function(data) {
-            var logBox = document.getElementById("mininet-log");
-            logBox.innerHTML += `<p>${data.log}</p>`;
-            logBox.scrollTop = logBox.scrollHeight;
-        });
+            fetch("/run-mininet-command", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ command: command })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("mininet-log").innerHTML += `<p>${data.output}</p>`;
+            })
+            .catch(error => console.error("Error:", error));
+        }
 
         socket.on("log_update", function(data) {
             document.getElementById("benchmark-log").innerHTML += `<p>${data.log}</p>`;
         });
 
-    
+        socket.on("mininet_log", function(data) {
+            document.getElementById("mininet-log").innerHTML += `<p>${data.log}</p>`;
+        });
 
         socket.on("controller_log", function(data) {
             document.getElementById("controller-log").innerHTML += `<p>${data.log}</p>`;
         });
 
+        function startControllerLogs() {
+        var controllerName = document.getElementById("controller_name").value;
         
+        fetch("/start-controller-logs", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ "controller_name": controllerName })
+        })
+        .then(response => response.json())
+        .then(data => console.log(data.message))
+        .catch(error => console.error("Error:", error));
+        }
 
+        socket.on("controller_log", function(data) {
+            document.getElementById("controller-log").innerHTML += `<p>${data.log}</p>`;
+        });
+        
     </script>
 </body>
 </html>

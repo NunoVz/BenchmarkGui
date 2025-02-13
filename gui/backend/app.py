@@ -12,6 +12,16 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 SUDO_PASSWORD = "b1vbx11"
 BENCHMARK_DIR = "/home/admin/BenchmarkGui/Tese-2"
 BENCHMARK_SCRIPT = "benchmark.py"
+CONTROLLER_IP = "193.137.203.34"
+CONTROLLER_USER = "admin"
+CONTROLLER_KEY = "/home/admin/.ssh/id_rsa"
+
+LOG_FILES = {
+    "onos": "/opt/onos/logs/karaf.log",
+    "ryu": "/var/log/ryu.log",
+    "odl": "/opt/opendaylight/data/log/karaf.log",
+    "floodlight": "/var/log/floodlight.log"
+}
 
 @app.route('/')
 def index():
@@ -84,37 +94,69 @@ def start_benchmark():
 
 @app.route('/run-mininet-command', methods=['POST'])
 def run_mininet_command():
-    """Runs a Mininet command and streams logs in real-time."""
     try:
         data = request.json
         command = data.get("command", "").strip()
 
-        if not command:
-            return jsonify({"error": "No command provided!"}), 400
+        allowed_commands = ["sudo mn -c", "sudo mn", "sudo mn --log-level=debug", "sudo tcpdump -i any -n -X port 6633"]
+        if command not in allowed_commands:
+            return jsonify({"error": "Unauthorized command!"}), 400
 
-        log_message(f"Executing Mininet Command: {command}")
+        full_command = f"echo {SUDO_PASSWORD} | sudo -S {command}"
 
-        # Run the command as a subprocess
         process = subprocess.Popen(
-            f"echo {SUDO_PASSWORD} | sudo -S {command}",
+            full_command,
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
         )
 
-        # Stream logs in real-time
-        def stream_output(stream, prefix):
-            for line in iter(stream.readline, ""):
-                log_message(f"{prefix} {line.strip()}")
+        stdout, stderr = process.communicate()
 
-        socketio.start_background_task(target=stream_output, stream=process.stdout, prefix="[Mininet]")
-        socketio.start_background_task(target=stream_output, stream=process.stderr, prefix="[Mininet ERROR]")
+        if stdout:
+            socketio.emit("mininet_log", {"log": stdout.strip()})
+        if stderr:
+            socketio.emit("mininet_log", {"log": f'ERROR: {stderr.strip()}'})
 
-        return jsonify({"message": f"Command '{command}' executed, logs streaming"}), 200
+        return jsonify({"output": stdout.strip() if stdout else stderr.strip()}), 200
 
     except Exception as e:
-        return jsonify({"error": f"Failed to execute Mininet command: {str(e)}"}), 500
+        return jsonify({"error": f"Failed to execute command: {str(e)}"}), 500
+
+
+def stream_controller_logs(controller_name):
+    if controller_name not in LOG_FILES:
+        socketio.emit("controller_log", {"log": f"ERROR: Unknown controller {controller_name}"})
+        return
+    
+    log_file = LOG_FILES[controller_name]
+
+    try:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(CONTROLLER_IP, username=CONTROLLER_USER, key_filename=CONTROLLER_KEY)
+        print(f"Connected to {controller_name} controller at {CONTROLLER_IP}")
+
+        command = f"tail -f {log_file}"
+        stdin, stdout, stderr = client.exec_command(command)
+
+        for line in iter(stdout.readline, ""):
+            socketio.emit("controller_log", {"log": line.strip()})
+        
+        client.close()
+
+    except Exception as e:
+        socketio.emit("controller_log", {"log": f"ERROR: Failed to fetch logs: {str(e)}"})
+
+@app.route('/start-controller-logs', methods=['POST'])
+def start_controller_logs():
+    data = request.json
+    controller_name = data.get("controller_name", "onos")  
+    
+    socketio.start_background_task(stream_controller_logs, controller_name)
+
+    return jsonify({"message": f"Streaming logs from {controller_name}"}), 200
 
 
 if __name__ == '__main__':
