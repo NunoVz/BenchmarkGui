@@ -12,7 +12,7 @@ SUDO_PASSWORD = "b1vbx11"
 
 # Path to Benchmark Tool
 BENCHMARK_DIR = "/home/admin/BenchmarkGui/Tese-2"
-BENCHMARK_CMD = f"echo {SUDO_PASSWORD} | sudo -S python3 {BENCHMARK_DIR}/benchmark.py -ip 193.137.203.34 -p 6653 -s 12 -q 3 -max 30 -n onos -t 3-tier -m N"
+BENCHMARK_CMD = f"sudo -S python3 {BENCHMARK_DIR}/benchmark.py -ip 193.137.203.34 -p 6653 -s 12 -q 3 -max 30 -n onos -t 3-tier -m N"
 
 def stream_benchmark_logs():
     """ Runs benchmark.py from the correct directory and streams logs. """
@@ -21,22 +21,28 @@ def stream_benchmark_logs():
             raise FileNotFoundError(f"⚠ ERROR: Directory '{BENCHMARK_DIR}' not found!")
 
         print(f"Executing: {BENCHMARK_CMD}")
+
         process = subprocess.Popen(
             shlex.split(BENCHMARK_CMD),
+            stdin=subprocess.PIPE,  # Send password here
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            bufsize=1  # Line buffering for real-time output
+            bufsize=1
         )
+
+        # Send sudo password
+        process.stdin.write(SUDO_PASSWORD + "\n")
+        process.stdin.flush()
 
         # Read stdout and stderr in real-time
         for line in iter(process.stdout.readline, ""):
-            print(f"BENCHMARK OUTPUT: {line.strip()}")  # Debugging
+            print(f"BENCHMARK OUTPUT: {line.strip()}")
             socketio.emit("log_update_benchmark_tool", {"log": line.strip()})
             process.stdout.flush()
 
         for line in iter(process.stderr.readline, ""):
-            print(f"BENCHMARK ERROR: {line.strip()}")  # Debugging
+            print(f"BENCHMARK ERROR: {line.strip()}")
             socketio.emit("log_update_benchmark_tool", {"log": f"ERROR: {line.strip()}"})
             process.stderr.flush()
 
