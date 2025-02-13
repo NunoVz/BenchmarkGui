@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO, emit
 import subprocess
 import os
@@ -8,21 +8,22 @@ import sys
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# SUDO PASSWORD (Consider using sudoers instead)
 SUDO_PASSWORD = "b1vbx11"
-
-# Path to Benchmark Tool
 BENCHMARK_DIR = "/home/admin/BenchmarkGui/Tese-2"
 BENCHMARK_CMD = f"sudo -S python3 {BENCHMARK_DIR}/benchmark.py -ip 193.137.203.34 -p 6653 -s 12 -q 3 -max 30 -n onos -t 3-tier -m N"
 
+@app.route('/')
+def index():
+    return render_template("index.html")  # Serve the HTML page
+
 def log_message(message):
-    """ Sends logs to both Flask console and React via WebSockets. """
+    """ Sends logs to both Flask console and the Web via WebSockets. """
     print(message)
-    socketio.emit("log_update_benchmark_tool", {"log": message})
+    socketio.emit("log_update", {"log": message})
     sys.stdout.flush()  # Ensure real-time log flushing
 
 def stream_benchmark_logs():
-    """ Runs benchmark.py and streams logs to React. """
+    """ Runs benchmark.py and streams logs to the webpage. """
     try:
         if not os.path.exists(BENCHMARK_DIR):
             log_message(f"⚠ ERROR: Directory '{BENCHMARK_DIR}' not found!")
@@ -45,10 +46,10 @@ def stream_benchmark_logs():
 
         # Read stdout and stderr in real-time
         for line in iter(process.stdout.readline, ""):
-            log_message(f"BENCHMARK OUTPUT: {line.strip()}")
+            log_message(f"{line.strip()}")
 
         for line in iter(process.stderr.readline, ""):
-            log_message(f"BENCHMARK ERROR: {line.strip()}")
+            log_message(f"⚠ ERROR: {line.strip()}")
 
         process.stdout.close()
         process.stderr.close()
@@ -57,8 +58,7 @@ def stream_benchmark_logs():
         if process.returncode != 0:
             log_message(f"⚠ ERROR: Benchmark tool exited with code {process.returncode}")
 
-        # 🔴 Close WebSocket when benchmark is finished
-        log_message("✅ Benchmark process completed. Closing WebSocket.")
+        log_message("✅ Benchmark process completed.")
         socketio.emit("benchmark_complete", {"message": "Benchmark process completed."})
 
     except Exception as e:
@@ -69,7 +69,7 @@ def start_benchmark():
     """ Starts the benchmark and logs streaming. """
     log_message("Received benchmark start request.")
     socketio.start_background_task(target=stream_benchmark_logs)
-    return jsonify({"message": "Benchmark started, CLI logs streaming"}), 200
+    return jsonify({"message": "Benchmark started, logs streaming"}), 200
 
 if __name__ == '__main__':
     socketio.run(app, host="0.0.0.0", port=5000, debug=True)
