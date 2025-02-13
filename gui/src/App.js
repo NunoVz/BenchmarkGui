@@ -4,29 +4,23 @@ import { io } from "socket.io-client";
 
 function BenchmarkDashboard() {
     const [toolLogs, setToolLogs] = useState([]);
-    const [flaskLogs, setFlaskLogs] = useState([]);
-    const [status, setStatus] = useState("idle");
 
     useEffect(() => {
-        const socket = io("http://localhost:5000");  // Connect WebSocket
+        const socket = io("http://localhost:5000", {
+            transports: ["websocket"],  
+        }); 
 
         // Listen for Benchmark CLI output
         socket.on("log_update_benchmark_tool", (data) => {
+            console.log("Received log:", data.log);  // Debugging: Ensure logs are received
             setToolLogs((prevLogs) => [...prevLogs, data.log]);
-        });
-
-        // Listen for Flask logs
-        socket.on("log_update_flask", (data) => {
-            setFlaskLogs((prevLogs) => [...prevLogs, data.log]);
         });
 
         return () => socket.disconnect();
     }, []);
 
     const startBenchmark = async () => {
-        setToolLogs([]);
-        setFlaskLogs([]);
-        setStatus("running");
+        setToolLogs([]); // Clear previous logs
 
         try {
             const response = await axios.post("/start-benchmark", { message: "Start requested from React" });
@@ -38,20 +32,22 @@ function BenchmarkDashboard() {
 
     return (
         <div style={{ padding: "20px", textAlign: "center" }}>
-            <h1>Benchmarking Dashboard</h1>
+            <h1>Benchmarking CLI Output</h1>
             <button onClick={startBenchmark} style={{ padding: "10px", fontSize: "16px" }}>Start Benchmark</button>
-            
-            <h2>Status: {status}</h2>
 
-            {/* Flask Logs */}
-            <div style={{ maxHeight: "400px", overflowY: "auto", border: "1px solid #ccc", padding: "10px", marginTop: "20px", textAlign: "left" }}>
-                <h3>Flask Server Logs</h3>
-                <pre style={{ whiteSpace: "pre-wrap" }}>{flaskLogs.join("\n")}</pre>
-            </div>
-
-            {/* Benchmark Tool Logs */}
-            <div style={{ maxHeight: "400px", overflowY: "auto", border: "1px solid #ccc", padding: "10px", marginTop: "20px", textAlign: "left" }}>
-                <h3>Benchmark Tool CLI Output</h3>
+            {/* CLI Output Display */}
+            <div style={{
+                maxHeight: "400px",
+                overflowY: "auto",
+                border: "1px solid #ccc",
+                padding: "10px",
+                marginTop: "20px",
+                textAlign: "left",
+                backgroundColor: "#000",
+                color: "#0f0",
+                fontFamily: "monospace"
+            }}>
+                <h3>Framework CLI Output</h3>
                 <pre style={{ whiteSpace: "pre-wrap" }}>{toolLogs.join("\n")}</pre>
             </div>
         </div>
