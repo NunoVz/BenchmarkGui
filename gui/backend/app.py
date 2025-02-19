@@ -7,7 +7,7 @@ import sys
 import json
 import paramiko
 import pandas as pd
-
+import numpy as np
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -200,14 +200,13 @@ def read_results(output_folder):
                     print(f"Reading file: {filepath}")  # Debugging line
                     df = pd.read_csv(filepath)
 
-                    # **Convert NaN, Inf, -Inf to None**
-                    df = df.applymap(lambda x: None if pd.isna(x) or x in [float('inf'), float('-inf')] else x)
+                    # **Convert NaN to None (valid JSON format)**
+                    df = df.replace({np.nan: None})  
 
                     results[f"{category}_{filename}"] = df.to_dict(orient='records')
 
     print("Final Results (Fixed NaN):", results)  # Debugging line
     return results
-
 
 
 

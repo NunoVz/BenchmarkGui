@@ -4,50 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Benchmark Results</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         async function fetchResults() {
             const outputFolder = "{{ output_folder }}";
             const response = await fetch(`/api/results/${outputFolder}`);
             const data = await response.json();
-            
-            console.log("Fetched Data:", data);  // Debugging line
+
+            console.log("Fetched Data:", data); // Debugging
+
+            if (Object.keys(data).length === 0) {
+                document.getElementById("tables").innerHTML = "<p>No data found.</p>";
+                return;
+            }
+
             displayResults(data);
         }
 
         function displayResults(data) {
-            document.getElementById("charts").innerHTML = ""; // Clear previous results
-            Object.keys(data).forEach((category, index) => {
-                let container = document.createElement("div");
+            const tablesDiv = document.getElementById("tables");
+            tablesDiv.innerHTML = ""; // Clear previous results
+
+            Object.keys(data).forEach((category) => {
+                let table = document.createElement("table");
+                table.border = "1";
+                table.style.marginBottom = "20px";
+
                 let title = document.createElement("h2");
                 title.innerText = category;
-                let canvas = document.createElement("canvas");
-                canvas.id = "chart" + index;
-                container.appendChild(title);
-                container.appendChild(canvas);
-                document.getElementById("charts").appendChild(container);
-                
-                let ctx = canvas.getContext("2d");
-                let labels = data[category].map(d => d.Time || d.Metric || "Unknown");
-                let values = data[category].map(d => d.Value || d.Throughput || 0);
-                
-                new Chart(ctx, {
-                    type: "line",
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: category,
-                            data: values,
-                            borderColor: "rgba(75, 192, 192, 1)",
-                            borderWidth: 2,
-                            fill: false
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
+                tablesDiv.appendChild(title);
+
+                let headers = Object.keys(data[category][0] || {});
+
+                // Create table header
+                let thead = document.createElement("thead");
+                let headerRow = document.createElement("tr");
+                headers.forEach(header => {
+                    let th = document.createElement("th");
+                    th.innerText = header;
+                    headerRow.appendChild(th);
                 });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                // Create table body
+                let tbody = document.createElement("tbody");
+                data[category].forEach(row => {
+                    let tr = document.createElement("tr");
+                    headers.forEach(header => {
+                        let td = document.createElement("td");
+                        td.innerText = row[header] !== null ? row[header] : "N/A";
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+
+                tablesDiv.appendChild(table);
             });
         }
 
@@ -57,6 +69,6 @@
 <body>
     <h1>Benchmark Results for {{ output_folder }}</h1>
     <a href="/">Back to Selection</a>
-    <div id="charts" style="width:80%; margin:auto;"></div>
+    <div id="tables"></div>
 </body>
 </html>
