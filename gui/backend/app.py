@@ -24,7 +24,7 @@ LOG_FILES = {
     "odl": "/opt/opendaylight/data/log/karaf.log",
     "floodlight": "/var/log/floodlight.log"
 }
-RESOURCES_DIR = "./Resources"  
+RESOURCES_DIR = os.path.abspath("Resources")
 
 @app.route('/')
 def index():
