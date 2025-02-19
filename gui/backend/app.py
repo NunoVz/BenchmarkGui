@@ -184,15 +184,24 @@ def list_folders():
 def read_results(output_folder):
     results = {}
     folder_path = os.path.join(RESOURCES_DIR, output_folder)
+
+    if not os.path.exists(folder_path):
+        print(f"Error: {folder_path} does not exist!")
+        return {}
+
     for category in os.listdir(folder_path):
         category_path = os.path.join(folder_path, category)
         if os.path.isdir(category_path):
             for filename in os.listdir(category_path):
                 if filename.endswith(".csv"):
                     filepath = os.path.join(category_path, filename)
+                    print(f"Reading file: {filepath}")  # Debugging line
                     df = pd.read_csv(filepath)
                     results[f"{category}_{filename}"] = df.to_dict(orient='records')
+
+    print("Final Results:", results)  # Debugging line
     return results
+
 
 @app.route('/folders')
 def list_folders_view():
@@ -207,7 +216,10 @@ def results_page(output_folder):
 
 @app.route('/api/results/<output_folder>')
 def api_results(output_folder):
-    return jsonify(read_results(output_folder))
+    results = read_results(output_folder)
+    print(f"Results for {output_folder}:", results)  # Debugging line
+    return jsonify(results)
+
 
 if __name__ == '__main__':
     socketio.run(app, host="0.0.0.0", port=443, debug=True)
