@@ -3,14 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Select Benchmark Folder</title>
+    <title>Benchmark Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        async function fetchResults() {
+            const outputFolder = "{{ output_folder }}";
+            const response = await fetch(`/api/results/${outputFolder}`);
+            const data = await response.json();
+            displayResults(data);
+        }
+
+        function displayResults(data) {
+            document.getElementById("charts").innerHTML = ""; // Clear previous results
+            Object.keys(data).forEach((category, index) => {
+                let container = document.createElement("div");
+                let title = document.createElement("h2");
+                title.innerText = category;
+                let canvas = document.createElement("canvas");
+                canvas.id = "chart" + index;
+                container.appendChild(title);
+                container.appendChild(canvas);
+                document.getElementById("charts").appendChild(container);
+                
+                let ctx = canvas.getContext("2d");
+                let labels = data[category].map(d => d.Time || d.Metric || "Unknown");
+                let values = data[category].map(d => d.Value || d.Throughput || 0);
+                
+                new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: category,
+                            data: values,
+                            borderColor: "rgba(75, 192, 192, 1)",
+                            borderWidth: 2,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            });
+        }
+
+        window.onload = fetchResults;
+    </script>
 </head>
 <body>
-    <h1>Select a Benchmark Output Folder</h1>
-    <ul>
-        {% for folder in folders %}
-            <li><a href="/results/{{ folder }}">{{ folder }}</a></li>
-        {% endfor %}
-    </ul>
+    <h1>Benchmark Results for {{ output_folder }}</h1>
+    <a href="/">Back to Selection</a>
+    <div id="charts" style="width:80%; margin:auto;"></div>
 </body>
 </html>

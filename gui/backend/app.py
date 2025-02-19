@@ -196,7 +196,9 @@ def read_results(output_folder):
 @app.route('/folders')
 def list_folders_view():
     folders = list_folders()
-    return render_template('index.html', folders=folders)
+    print("Detected Folders:", folders)  
+    return render_template('folders.html', folders=folders)
+
 
 @app.route('/results/<output_folder>')
 def results_page(output_folder):
