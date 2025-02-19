@@ -193,8 +193,8 @@ def read_results(output_folder):
                     results[f"{category}_{filename}"] = df.to_dict(orient='records')
     return results
 
-@app.route('/')
-def index():
+@app.route('/folders')
+def list_folders_view():
     folders = list_folders()
     return render_template('index.html', folders=folders)
 

@@ -74,6 +74,14 @@
             <button type="button" onclick="startControllerLogs()">Start Controller Logs</button>
             <div id="controller-log"></div>
         </div>
+
+
+    <h1>Select a Benchmark Output Folder</h1>
+    <ul>
+        {% for folder in folders %}
+            <li><a href="/results/{{ folder }}">{{ folder }}</a></li>
+        {% endfor %}
+    </ul>
     </div>
 
     <script>
