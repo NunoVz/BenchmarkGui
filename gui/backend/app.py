@@ -24,6 +24,7 @@ LOG_FILES = {
     "odl": "/opt/opendaylight/data/log/karaf.log",
     "floodlight": "/var/log/floodlight.log"
 }
+RESULTS_DIR = "./Resources"  
 
 @app.route('/')
 def index():
@@ -174,6 +175,30 @@ def start_controller_logs():
     socketio.start_background_task(stream_controller_logs, controller_name)
 
     return jsonify({"message": f"Streaming logs from {controller_name}"}), 200
+
+
+
+
+
+def read_results():
+    results = {}
+    for category in ["Malformed", "Rest", "Traffic"]:
+        folder_path = os.path.join(RESULTS_DIR, category)
+        if os.path.exists(folder_path):
+            for filename in os.listdir(folder_path):
+                if filename.endswith(".csv"):
+                    filepath = os.path.join(folder_path, filename)
+                    df = pd.read_csv(filepath)
+                    results[f"{category}_{filename}"] = df.to_dict(orient='records')
+    return results
+
+@app.route('/results')
+def results_page():
+    return render_template('results.html')
+
+@app.route('/api/results')
+def api_results():
+    return jsonify(read_results())
 
 
 if __name__ == '__main__':

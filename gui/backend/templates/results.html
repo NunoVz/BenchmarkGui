@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benchmark Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        async function fetchResults() {
+            const response = await fetch('/api/results');
+            const data = await response.json();
+            displayResults(data);
+        }
+
+        function displayResults(data) {
+            Object.keys(data).forEach((category, index) => {
+                let canvas = document.createElement("canvas");
+                canvas.id = "chart" + index;
+                document.getElementById("charts").appendChild(canvas);
+                
+                let ctx = canvas.getContext("2d");
+                let labels = data[category].map(d => d.Time || d.Metric);
+                let values = data[category].map(d => d.Value || d.Throughput);
+                
+                new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: category,
+                            data: values,
+                            borderColor: "rgba(75, 192, 192, 1)",
+                            borderWidth: 2,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            });
+        }
+
+        window.onload = fetchResults;
+    </script>
+</head>
+<body>
+    <h1>Benchmark Results</h1>
+    <div id="charts" style="width:80%; margin:auto;"></div>
+</body>
+</html>
