@@ -9,6 +9,19 @@
 </head>
 <body>
     <div class="container">
+        <h1>Select a Benchmark Output Folder</h1>
+        <ul class="folder-list">
+            {% if folders %}
+                {% for folder in folders %}
+                    <li><a class="folder-link" href="/results/{{ folder }}">📂 {{ folder }}</a></li>
+                {% endfor %}
+            {% else %}
+                <p>No folders detected.</p>
+            {% endif %}
+        </ul>
+        <a class="nav-button" href="/folders">📁 View All Folders</a>
+    </div>
+    <div class="container">
         <h1>SDN Benchmark Tool</h1>
 
         <div class="form-container">
