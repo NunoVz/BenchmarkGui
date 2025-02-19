@@ -181,6 +181,8 @@ def start_controller_logs():
 def list_folders():
     return [folder for folder in os.listdir(RESOURCES_DIR) if os.path.isdir(os.path.join(RESOURCES_DIR, folder))]
 
+import pandas as pd
+
 def read_results(output_folder):
     results = {}
     folder_path = os.path.join(RESOURCES_DIR, output_folder)
@@ -198,12 +200,14 @@ def read_results(output_folder):
                     print(f"Reading file: {filepath}")  # Debugging line
                     df = pd.read_csv(filepath)
 
-                    df = df.where(pd.notna(df), None)
+                    # **Convert NaN, Inf, -Inf to None**
+                    df = df.applymap(lambda x: None if pd.isna(x) or x in [float('inf'), float('-inf')] else x)
 
                     results[f"{category}_{filename}"] = df.to_dict(orient='records')
 
-    print("Final Results (Fixed NaN using Pandas):", results)  # Debugging line
+    print("Final Results (Fixed NaN):", results)  # Debugging line
     return results
+
 
 
 
