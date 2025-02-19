@@ -198,13 +198,13 @@ def read_results(output_folder):
                     print(f"Reading file: {filepath}")  # Debugging line
                     df = pd.read_csv(filepath)
 
-                    # **Convert NaN to None for JSON compatibility**
                     df = df.where(pd.notna(df), None)
 
                     results[f"{category}_{filename}"] = df.to_dict(orient='records')
 
     print("Final Results (Fixed NaN using Pandas):", results)  # Debugging line
     return results
+
 
 
 
