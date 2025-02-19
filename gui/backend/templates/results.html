@@ -4,6 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Benchmark Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .category {
+            margin-bottom: 30px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #f8f9fa;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        a {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        a:hover {
+            background: #0056b3;
+        }
+    </style>
     <script>
         async function fetchResults() {
             const outputFolder = "{{ output_folder }}";
@@ -25,14 +82,14 @@
             tablesDiv.innerHTML = ""; // Clear previous results
 
             Object.keys(data).forEach((category) => {
-                let table = document.createElement("table");
-                table.border = "1";
-                table.style.marginBottom = "20px";
-
+                let categoryDiv = document.createElement("div");
+                categoryDiv.className = "category";
+                
                 let title = document.createElement("h2");
-                title.innerText = category;
-                tablesDiv.appendChild(title);
-
+                title.innerText = category.replace(/_/g, ' ').toUpperCase();
+                categoryDiv.appendChild(title);
+                
+                let table = document.createElement("table");
                 let headers = Object.keys(data[category][0] || {});
 
                 // Create table header
@@ -40,7 +97,7 @@
                 let headerRow = document.createElement("tr");
                 headers.forEach(header => {
                     let th = document.createElement("th");
-                    th.innerText = header;
+                    th.innerText = header.replace(/_/g, ' ');
                     headerRow.appendChild(th);
                 });
                 thead.appendChild(headerRow);
@@ -58,8 +115,9 @@
                     tbody.appendChild(tr);
                 });
                 table.appendChild(tbody);
-
-                tablesDiv.appendChild(table);
+                
+                categoryDiv.appendChild(table);
+                tablesDiv.appendChild(categoryDiv);
             });
         }
 
@@ -67,8 +125,10 @@
     </script>
 </head>
 <body>
-    <h1>Benchmark Results for {{ output_folder }}</h1>
-    <a href="/">Back to Selection</a>
-    <div id="tables"></div>
+    <div class="container">
+        <h1>Benchmark Results for {{ output_folder }}</h1>
+        <a href="/">Back to Selection</a>
+        <div id="tables"></div>
+    </div>
 </body>
 </html>
