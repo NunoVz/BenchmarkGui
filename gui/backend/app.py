@@ -24,7 +24,7 @@ LOG_FILES = {
     "odl": "/opt/opendaylight/data/log/karaf.log",
     "floodlight": "/var/log/floodlight.log"
 }
-RESULTS_DIR = "./Resources"  
+RESOURCES_DIR = "./Resources"  
 
 @app.route('/')
 def index():
@@ -177,29 +177,34 @@ def start_controller_logs():
     return jsonify({"message": f"Streaming logs from {controller_name}"}), 200
 
 
+def list_folders():
+    return [folder for folder in os.listdir(RESOURCES_DIR) if os.path.isdir(os.path.join(RESOURCES_DIR, folder))]
 
-
-
-def read_results():
+def read_results(output_folder):
     results = {}
-    for category in ["Malformed", "Rest", "Traffic"]:
-        folder_path = os.path.join(RESULTS_DIR, category)
-        if os.path.exists(folder_path):
-            for filename in os.listdir(folder_path):
+    folder_path = os.path.join(RESOURCES_DIR, output_folder)
+    for category in os.listdir(folder_path):
+        category_path = os.path.join(folder_path, category)
+        if os.path.isdir(category_path):
+            for filename in os.listdir(category_path):
                 if filename.endswith(".csv"):
-                    filepath = os.path.join(folder_path, filename)
+                    filepath = os.path.join(category_path, filename)
                     df = pd.read_csv(filepath)
                     results[f"{category}_{filename}"] = df.to_dict(orient='records')
     return results
 
-@app.route('/results')
-def results_page():
-    return render_template('results.html')
+@app.route('/')
+def index():
+    folders = list_folders()
+    return render_template('index.html', folders=folders)
 
-@app.route('/api/results')
-def api_results():
-    return jsonify(read_results())
+@app.route('/results/<output_folder>')
+def results_page(output_folder):
+    return render_template('results.html', output_folder=output_folder)
 
+@app.route('/api/results/<output_folder>')
+def api_results(output_folder):
+    return jsonify(read_results(output_folder))
 
 if __name__ == '__main__':
     socketio.run(app, host="0.0.0.0", port=443, debug=True)
