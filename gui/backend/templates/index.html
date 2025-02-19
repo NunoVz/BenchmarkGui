@@ -78,18 +78,7 @@
 
     
     </div>
-    <div class="container">
-    <h1>Select a Benchmark Output Folder</h1>
-            <ul>
-                {% if folders %}
-                    {% for folder in folders %}
-                        <li><a href="/results/{{ folder }}">{{ folder }}</a></li>
-                    {% endfor %}
-                {% else %}
-                    <p>No folders detected.</p>
-                {% endif %}
-            </ul>
-    </div>
+   
     <script>
         var socket = io.connect("http://10.3.3.114:443");
 
