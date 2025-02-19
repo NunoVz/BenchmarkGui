@@ -4,17 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Benchmark Folder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .folder-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .folder-list li {
+            margin: 10px 0;
+        }
+        .folder-link {
+            display: block;
+            padding: 15px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 18px;
+            transition: 0.3s;
+        }
+        .folder-link:hover {
+            background: #0056b3;
+        }
+    </style>
 </head>
 <body>
-    <h1>Select a Benchmark Output Folder</h1>
-    <ul>
-        {% if folders %}
-            {% for folder in folders %}
-                <li><a href="/results/{{ folder }}">{{ folder }}</a></li>
-            {% endfor %}
-        {% else %}
-            <p>No folders detected.</p>
-        {% endif %}
-    </ul>
+    <div class="container">
+        <h1>Select a Benchmark Output Folder</h1>
+        <ul class="folder-list">
+            {% if folders %}
+                {% for folder in folders %}
+                    <li><a class="folder-link" href="/results/{{ folder }}">📂 {{ folder }}</a></li>
+                {% endfor %}
+            {% else %}
+                <p>No folders detected.</p>
+            {% endif %}
+        </ul>
+    </div>
 </body>
 </html>

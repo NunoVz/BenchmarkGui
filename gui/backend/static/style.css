@@ -91,3 +91,37 @@ button:hover {
 
 
 
+.folder-list {
+    list-style-type: none;
+    padding: 0;
+}
+.folder-list li {
+    margin: 10px 0;
+}
+.folder-link {
+    display: block;
+    padding: 15px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 18px;
+    transition: 0.3s;
+}
+.folder-link:hover {
+    background: #0056b3;
+}
+.nav-button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 18px;
+    transition: 0.3s;
+}
+.nav-button:hover {
+    background: #218838;
+}
