@@ -198,13 +198,14 @@ def read_results(output_folder):
                     print(f"Reading file: {filepath}")  # Debugging line
                     df = pd.read_csv(filepath)
 
-                    # **Convert NaN to None (valid JSON format)**
-                    df = df.replace({np.nan: None})  
+                    # **Convert NaN to None (valid JSON format) using Pandas**
+                    df = df.fillna(value=None)
 
                     results[f"{category}_{filename}"] = df.to_dict(orient='records')
 
-    print("Final Results (Fixed NaN):", results)  # Debugging line
+    print("Final Results (Fixed NaN using Pandas):", results)  # Debugging line
     return results
+
 
 
 @app.route('/folders')
