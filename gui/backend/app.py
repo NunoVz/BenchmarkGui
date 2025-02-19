@@ -197,9 +197,13 @@ def read_results(output_folder):
                     filepath = os.path.join(category_path, filename)
                     print(f"Reading file: {filepath}")  # Debugging line
                     df = pd.read_csv(filepath)
+
+                    # **Convert NaN to None (valid JSON format)**
+                    df = df.replace({np.nan: None})  
+
                     results[f"{category}_{filename}"] = df.to_dict(orient='records')
 
-    print("Final Results:", results)  # Debugging line
+    print("Final Results (Fixed NaN):", results)  # Debugging line
     return results
 
 
