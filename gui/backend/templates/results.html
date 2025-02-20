@@ -79,42 +79,50 @@
     </style>
     <script>
         let allResults = {};  // Store original results
-
+    
         async function fetchResults() {
             const outputFolder = "{{ output_folder }}";
             const response = await fetch(`/api/results/${outputFolder}`);
             const data = await response.json();
-
+    
             console.log("Fetched Data:", data); // Debugging
-
+    
             if (Object.keys(data).length === 0) {
                 document.getElementById("tables").innerHTML = "<p>No data found.</p>";
                 return;
             }
-
+    
             allResults = data; // Store the results for filtering
             displayResults(data);
         }
-
+    
         function displayResults(data) {
             const tablesDiv = document.getElementById("tables");
             tablesDiv.innerHTML = ""; // Clear previous results
-
+    
             Object.keys(data).forEach((category) => {
                 let categoryDiv = document.createElement("div");
                 categoryDiv.className = "category";
-                
-                // Extract controller name from filename (prefix before '_')
-                let controllerName = category.split("_")[0].toLowerCase();
-                categoryDiv.setAttribute("data-controller", controllerName);
-
+    
+                // Convert category name to lowercase to ensure consistent comparison
+                let lowerCategory = category.toLowerCase();
+    
+                // Determine which controller the file belongs to
+                let controller = "";
+                if (lowerCategory.includes("onos")) controller = "onos";
+                else if (lowerCategory.includes("ryu")) controller = "ryu";
+                else if (lowerCategory.includes("odl")) controller = "odl";
+                else controller = "other";  // Mark unclassified categories
+    
+                categoryDiv.setAttribute("data-controller", controller);
+    
                 let title = document.createElement("h2");
                 title.innerText = category.replace(/_/g, ' ').toUpperCase();
                 categoryDiv.appendChild(title);
-                
+    
                 let table = document.createElement("table");
                 let headers = Object.keys(data[category][0] || {});
-
+    
                 // Create table header
                 let thead = document.createElement("thead");
                 let headerRow = document.createElement("tr");
@@ -125,7 +133,7 @@
                 });
                 thead.appendChild(headerRow);
                 table.appendChild(thead);
-
+    
                 // Create table body
                 let tbody = document.createElement("tbody");
                 data[category].forEach(row => {
@@ -138,20 +146,20 @@
                     tbody.appendChild(tr);
                 });
                 table.appendChild(tbody);
-                
+    
                 categoryDiv.appendChild(table);
                 tablesDiv.appendChild(categoryDiv);
             });
         }
-
+    
         function filterResults(controller) {
             console.log("Filtering for:", controller); // Debugging
-
+    
             const categories = document.querySelectorAll('.category');
             categories.forEach(category => {
                 let categoryController = category.getAttribute("data-controller");
                 console.log("Category found:", categoryController); // Debugging
-
+    
                 if (controller === "all" || categoryController === controller) {
                     category.classList.remove("hidden");
                 } else {
@@ -159,9 +167,10 @@
                 }
             });
         }
-
+    
         window.onload = fetchResults;
     </script>
+    
 </head>
 <body>
     <div class="container">
