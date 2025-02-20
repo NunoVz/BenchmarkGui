@@ -205,7 +205,6 @@ def read_results(output_folder):
 
                     results[f"{category}_{filename}"] = df.to_dict(orient='records')
 
-    print("Final Results (Fixed NaN):", results)  # Debugging line
     return results
 
 

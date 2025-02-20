@@ -103,8 +103,11 @@
             Object.keys(data).forEach((category) => {
                 let categoryDiv = document.createElement("div");
                 categoryDiv.className = "category";
-                categoryDiv.setAttribute("data-controller", category.split("_")[0]); // Set controller name
                 
+                // Extract controller name from filename (prefix before '_')
+                let controllerName = category.split("_")[0].toLowerCase();
+                categoryDiv.setAttribute("data-controller", controllerName);
+
                 let title = document.createElement("h2");
                 title.innerText = category.replace(/_/g, ' ').toUpperCase();
                 categoryDiv.appendChild(title);
@@ -142,9 +145,14 @@
         }
 
         function filterResults(controller) {
+            console.log("Filtering for:", controller); // Debugging
+
             const categories = document.querySelectorAll('.category');
             categories.forEach(category => {
-                if (controller === "all" || category.getAttribute("data-controller") === controller) {
+                let categoryController = category.getAttribute("data-controller");
+                console.log("Category found:", categoryController); // Debugging
+
+                if (controller === "all" || categoryController === controller) {
                     category.classList.remove("hidden");
                 } else {
                     category.classList.add("hidden");
