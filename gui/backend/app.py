@@ -225,7 +225,6 @@ def results_page(output_folder):
 @app.route('/api/results/<output_folder>')
 def api_results(output_folder):
     results = read_results(output_folder)
-    print(f"Results for {output_folder}:", results)  # Debugging line
     return jsonify(results)
 
 
