@@ -1,0 +1,3 @@
+num_switches,min_time,avg_time,max_time,mdev,avg_time_excl_max
+6,0.106,4.519,0.65,1.295,0.2201111111111111
+9,0.109,10.063,1.594,3.085,0.653
